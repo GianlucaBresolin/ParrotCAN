@@ -1,0 +1,12 @@
+[package]
+name = "simulated_led_driver"
+version = "0.1.0"
+edition = "2024"
+authors = [
+    "Gianluca Bresolin"
+]
+description = "A simulated LED driver for testing purposes in an embedded system."
+
+[dependencies]
+cortex-m-semihosting = "0.5" 
+local_device_manager = { path = "../local_device_manager" }
