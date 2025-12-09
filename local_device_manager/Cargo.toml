@@ -1,0 +1,8 @@
+[package]
+name = "local_device_manager"
+version = "0.1.0"
+edition = "2024"
+authors = [
+    "Gianluca Bresolin"
+]
+description = "A local device manager for managing local devices in an embedded system."
