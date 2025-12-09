@@ -9,6 +9,8 @@ dependencies = [
  "cortex-m",
  "cortex-m-rt",
  "cortex-m-semihosting",
+ "local_device_manager",
+ "simulated_led_driver",
 ]
 
 [[package]]
@@ -78,6 +80,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "local_device_manager"
+version = "0.1.0"
+
+[[package]]
 name = "nb"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -133,6 +139,14 @@ name = "semver-parser"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
+
+[[package]]
+name = "simulated_led_driver"
+version = "0.1.0"
+dependencies = [
+ "cortex-m-semihosting",
+ "local_device_manager",
+]
 
 [[package]]
 name = "syn"

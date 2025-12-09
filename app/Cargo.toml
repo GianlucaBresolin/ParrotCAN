@@ -1,0 +1,11 @@
+[package] 
+name = "ParrotProject" 
+version = "0.1.0" 
+edition = "2024" 
+
+[dependencies] 
+cortex-m = "0.7.7" 
+cortex-m-rt = "0.7.3" 
+cortex-m-semihosting = "0.5"
+local_device_manager = { path = "../local_device_manager" }
+simulated_led_driver = { path = "../simulated_led_driver" }
