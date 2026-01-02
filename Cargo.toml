@@ -1,7 +1,0 @@
-[workspace]
-members = [
-    "app",
-    "local_device_manager",
-    "simulated_led_driver"
-]
-resolver = "3"

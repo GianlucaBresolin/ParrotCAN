@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "app",
+    "local_device_manager",
+    "simulated_led_driver",
+    "communication_component",
+]
+resolver = "3"
+
+exclude = [
+    "qemu"
+]

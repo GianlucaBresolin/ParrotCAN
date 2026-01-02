@@ -9,3 +9,4 @@ cortex-m-rt = "0.7.3"
 cortex-m-semihosting = "0.5"
 local_device_manager = { path = "../local_device_manager" }
 simulated_led_driver = { path = "../simulated_led_driver" }
+communication_component = { path = "../communication_component" }

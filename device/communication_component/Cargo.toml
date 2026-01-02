@@ -1,0 +1,6 @@
+[package]
+name = "communication_component"
+version = "0.1.0"
+edition = "2024"
+authors = [ "Gianluca Bresolin" ]
+description = "A communication component for handling communication protocols in an embedded system."
