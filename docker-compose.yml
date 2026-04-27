@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  virtual-can-bus:
+    image: virtual-can-bus:latest
+    container_name: virtual-can-bus
+    command: >
+      - "cargo run --release --bin virtual-can-bus"
+
+  victim-device:
+    image: device:latest
+    container_name: victim-device
+
+  attacker-device:
+    image: device:latest
+    container_name: attacker-device
+
+  other-device:
+    image: device:latest
+    container_name: other-device
