@@ -9,12 +9,21 @@ services:
 
   victim-device:
     image: device:latest
+    environment:
+      - MY_IDS=0x100
+      - INTERESTED_IDS = ""
     container_name: victim-device
 
   attacker-device:
     image: device:latest
+    environment:
+      - MY_IDS=0x100
+      - INTERESTED_IDS = ""
     container_name: attacker-device
 
   other-device:
     image: device:latest
+    environment:
+      - MY_IDS=0x200
+      - INTERESTED_IDS=0x100
     container_name: other-device
