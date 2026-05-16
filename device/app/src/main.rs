@@ -2,11 +2,15 @@
 #![no_main]
 
 use cortex_m_rt::entry;
+use cortex_m_rt::exception;
+
 use local_device_manager::LocalDeviceManager;
 use simulated_led_driver::SimulatedLedDriver;
 use communication_component::CommunicationComponent;
 
 mod parse;
+
+static mut COMMUNICATION_COMPONENT: Option<CommunicationComponent> = None;
 
 #[entry]
 fn main() -> !{
@@ -14,15 +18,17 @@ fn main() -> !{
     let interested_ids = parse::interested_ids();
 
     let mut local_device_manager = LocalDeviceManager::new(SimulatedLedDriver);
-    let communication_component = CommunicationComponent::new(
-        my_ids, 
-        my_ids.len(), 
-        interested_ids,
-        interested_ids.len()
-    );
+    unsafe {
+        COMMUNICATION_COMPONENT = Some(CommunicationComponent::new(
+            my_ids, 
+            my_ids.len(), 
+            interested_ids,
+            interested_ids.len()
+       ));
+    }
 
     unsafe {
-        NVIC::unmask(Interrupt::CAN_CONTROLLER);
+        NVIC::unmask(cortex_m::interrupt::Nr::from(40u8));
         cortex_m::interrupt::enable();
     }
 
@@ -38,7 +44,14 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
-#[interrupt]
-fn CAN_interrupt_handler() {
-    // to do
+#[exception]
+fn DefaultHandler(irqn: i16) {
+    if irqn == 40 {
+        // Received CAN Frame Interrupt
+        unsafe {
+            if let Some(ref mut communication_component) = COMMUNICATION_COMPONENT {
+                communication_component.receive();
+            }
+        }
+    }
 }
