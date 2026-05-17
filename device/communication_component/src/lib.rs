@@ -40,26 +40,33 @@ impl CommunicationComponent {
         comm_comp
     }
 
-    pub fn send_data(&self) {
+    pub fn send_data(
+        &self, 
+        id: u16,
+        dlc: u8, 
+        data: &[u8]
+    ) {
+        if id > CAN_ID_MASK || dlc > 8 || data.len() > 8 {
+            // invalid parameters
+            return; 
+        }
+
+        let data_low: u32 = ((data.get(0).copied().unwrap_or(0) as u32) << 24)
+                      | ((data.get(1).copied().unwrap_or(0) as u32) << 16)
+                      | ((data.get(2).copied().unwrap_or(0) as u32) <<  8)
+                      | ((data.get(3).copied().unwrap_or(0) as u32)      );
+        let data_high: u32 = ((data.get(4).copied().unwrap_or(0) as u32) << 24)
+                       | ((data.get(5).copied().unwrap_or(0) as u32) << 16)
+                       | ((data.get(6).copied().unwrap_or(0) as u32) <<  8)
+                       | ((data.get(7).copied().unwrap_or(0) as u32)      );
+        
         // write MMIO registers to send data CAN frame (RTR = 0)
         unsafe {
-            core::ptr::write_volatile(CAN_BASE.offset(0), 0x123); // ID
+            core::ptr::write_volatile(CAN_BASE.offset(0), id); // ID
             core::ptr::write_volatile(CAN_BASE.offset(1), 0);     // RTR
-            core::ptr::write_volatile(CAN_BASE.offset(2), 8);     // DLC
-            core::ptr::write_volatile(CAN_BASE.offset(3), 0xDE);  // Data low
-            core::ptr::write_volatile(CAN_BASE.offset(4), 0xAD);  // Data high
-            core::ptr::write_volatile(CAN_BASE.offset(5), 1);     // Command: send frame
-        }
-    }
-
-    pub fn request_data(&self) {
-        // write MMIO register to send a request frame (RTR = 1)
-        unsafe {
-            core::ptr::write_volatile(CAN_BASE.offset(0), 0x123); // ID
-            core::ptr::write_volatile(CAN_BASE.offset(1), 1);     // RTR
-            core::ptr::write_volatile(CAN_BASE.offset(2), 8);     // DLC (ignored for RTR)
-            core::ptr::write_volatile(CAN_BASE.offset(3), 0xDE);  // Data low
-            core::ptr::write_volatile(CAN_BASE.offset(4), 0xAD);  // Data high
+            core::ptr::write_volatile(CAN_BASE.offset(2), dlc);     // DLC
+            core::ptr::write_volatile(CAN_BASE.offset(3), data_low);  // Data low
+            core::ptr::write_volatile(CAN_BASE.offset(4), data_high);  // Data high
             core::ptr::write_volatile(CAN_BASE.offset(5), 1);     // Command: send frame
         }
     }
