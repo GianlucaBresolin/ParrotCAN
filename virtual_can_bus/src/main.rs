@@ -14,7 +14,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let received_bits = Arc::new(Mutex::new(Vec::new()));
     let received_bits_for_task = Arc::clone(&received_bits);
 
-    // --- 1. TASK FOR RECEIVING ECU MESSAGES ---
+    // 1. TASK FOR REGISTERING ECUS 
     tokio::spawn(async move {
         let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
         loop {
@@ -25,8 +25,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 controllers_for_task.lock().await.push(tx);
 
-                // read bits from ECU
                 let bits = Arc::clone(&received_bits_for_task);
+                // TASK HANDLER FOR READING ECU BITs
                 tokio::spawn(async move {
                     let mut buf = [0u8; 1];
                     loop {
@@ -39,7 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 });
 
-                // send bits to ECU
+                // TASK HANDLER FOR WRITING BUS STATE TO ECU
                 tokio::spawn(async move {
                     while let Some(bit) = rx.recv().await {
                         if write_half.write_all(&[bit]).await.is_err() {
@@ -51,7 +51,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    // --- 2. CALCULATE BUS STATE AFTER DELTA TIME ---
+    // 2. CALCULATE BUS STATE AFTER DELTA TIME
     let mut ticker = interval(Duration::from_millis(100));
     let mut time = 0;
 
