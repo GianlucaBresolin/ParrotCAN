@@ -1,30 +1,40 @@
+use std::collections::HashMap;
 use std::time::Duration;
-use tokio::time::{interval};
+use tokio::time::sleep;
 use std::sync::{Arc};
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, Notify};
 use tokio::net::{TcpListener};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::mpsc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let registered_controllers = Arc::new(Mutex::new(Vec::new()));
+    let registered_controllers = Arc::new(Mutex::new(HashMap::new()));
     let controllers_for_task = Arc::clone(&registered_controllers);
 
-    let received_bits = Arc::new(Mutex::new(Vec::new()));
+    let received_bits = Arc::new(Mutex::new(HashMap::new()));
     let received_bits_for_task = Arc::clone(&received_bits);
+
+    let notify = Arc::new(Notify::new());
+    let notify_for_task = Arc::clone(&notify);
 
     // 1. TASK FOR REGISTERING ECUS 
     tokio::spawn(async move {
         let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
+        let mut next_id: usize = 0;
+
         loop {
             if let Ok((mut socket, _)) = listener.accept().await {
+                let id = next_id;
+                next_id += 1;
 
                 let (mut read_half, mut write_half) = tokio::io::split(socket);
                 let (tx, mut rx) = mpsc::unbounded_channel::<u8>();
 
-                controllers_for_task.lock().await.push(tx);
+                controllers_for_task.lock().await.insert(id, tx);
 
+                let controllers_for_reader = Arc::clone(&controllers_for_task);
+                let notify_for_reader = Arc::clone(&notify_for_task);
                 let bits = Arc::clone(&received_bits_for_task);
                 // TASK HANDLER FOR READING ECU BITs
                 tokio::spawn(async move {
@@ -32,9 +42,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     loop {
                         match read_half.read_exact(&mut buf).await {
                             Ok(_) if buf[0] == 0 || buf[0] == 1 => {
-                                bits.lock().await.push(buf[0]);
+                                let mut bits_lock = bits.lock().await;
+                                bits_lock.insert(id, buf[0]);
+
+                                // checks if it was the last bit waited
+                                let registered_count = controllers_for_reader.lock().await.len();
+                                if bits_lock.len() == registered_count {
+                                    notify_for_reader.notify_one();
+                                }
                             }
-                            _ => break,
+                            _ => {
+                                // connection lost, remove the controller
+                                controllers_for_reader.lock().await.remove(&id);
+                                bits.lock().await.remove(&id);
+
+                                // now received bits might be complete: wake up
+                                // to check
+                                notify_for_reader.notify_one();
+                                break;
+                            }
                         }
                     }
                 });
@@ -52,27 +78,45 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     // 2. CALCULATE BUS STATE AFTER DELTA TIME
-    let mut ticker = interval(Duration::from_millis(100));
     let mut time = 0;
-
     loop {
-        ticker.tick().await;
-        time += 1;
+        let registered_count = registered_controllers.lock().await.len();
 
-        // Collect all bits sent by ECUs in the last interval
-        let bits: Vec<u8> = {
-            let mut lock = received_bits.lock().await;
-            let collected = lock.clone();
-            lock.clear();
-            collected
+        // No ECUs registered: default
+        if registered_count == 0 {
+            sleep(Duration::from_millis(100)).await;
+            time += 1;
+            println!("Current CAN bus state: 1 (no registered ECUs) (tick: {})", time);
+            continue;
+        }
+
+        tokio::selec! {
+            _ = notify.notified() => {},
+        }
+
+        // checks if the notification is valid
+        let ready = {
+            let bits = received_bits.lock().await;
+            let count = registered_controllers.lock().await.len();
+            count > 0 && bits.len() == count
         };
+        if !ready {
+            continue;
+        }
+        time += 1;
 
         // CAN bus state: dominant (0) if any ECU sends 0, recessive (1) if all
         // send 1 or no bits
-        let bus_state: u8 = if bits.iter().any(|&b| b == 0) { 0 } else { 1 };
+        let bus_state: u8 = {
+            let bits = received_bits.lock().await;
+            if bits.values().any(|&b| b == 0) { 0 } else { 1 }
+        };
 
         let mut regs = registered_controllers.lock().await;
         regs.retain(|tx| tx.send(bus_state).is_ok());
+
+        // Go back to rx again
+        received_bits.lock().await.clear();
 
         println!("Current CAN bus state: {} (tick: {})", bus_state, time);
     }
