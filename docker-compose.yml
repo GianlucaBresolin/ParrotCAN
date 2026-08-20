@@ -1,29 +1,51 @@
-version: "3.8"
-
 services:
   virtual-can-bus:
-    image: virtual-can-bus:latest
+    build:
+      context: ./virtual_can_bus
+    pull_policy: build
     container_name: virtual-can-bus
-    command: >
-      - "cargo run --release --bin virtual-can-bus"
+    networks:
+      - can-net
 
   victim-device:
-    image: device:latest
-    environment:
-      - MY_IDS=0x100
-      - INTERESTED_IDS = ""
+    build:
+      context: ./device
+      args:
+        MY_IDS: "0x101"
+        INTERESTED_IDS: ""
+        ROLE: "victim"
     container_name: victim-device
+    depends_on:
+      - virtual-can-bus
+    networks:
+      - can-net
 
   attacker-device:
-    image: device:latest
-    environment:
-      - MY_IDS=0x100
-      - INTERESTED_IDS = ""
+    build:
+      context: ./device
+      args:
+        MY_IDS: "0x101"
+        INTERESTED_IDS: ""
+        ROLE: "attacker"
     container_name: attacker-device
+    depends_on:
+      - virtual-can-bus
+    networks:
+      - can-net
 
-  other-device:
-    image: device:latest
-    environment:
-      - MY_IDS=0x200
-      - INTERESTED_IDS=0x100
-    container_name: other-device
+  led-device:
+    build:
+      context: ./device
+      args:
+        MY_IDS: ""
+        INTERESTED_IDS: "0x101"
+        ROLE: "none"
+    container_name: led-device
+    depends_on:
+      - virtual-can-bus
+    networks:
+      - can-net
+
+networks:
+  can-net:
+    driver: bridge

@@ -1,0 +1,7 @@
+target/
+
+qemu-custom/*
+!qemu-custom/build_linux
+!qemu-custom/build_linux/qemu-system-arm
+
+.git/
