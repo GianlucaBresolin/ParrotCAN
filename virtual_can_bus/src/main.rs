@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::println;
 use std::time::Duration;
 use tokio::time::sleep;
 use std::sync::{Arc};
@@ -18,13 +19,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let notify = Arc::new(Notify::new());
     let notify_for_task = Arc::clone(&notify);
 
-    // 1. TASK FOR REGISTERING ECUS 
+    // 1. TASK FOR REGISTERING ECUS
     tokio::spawn(async move {
         let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
         let mut next_id: usize = 0;
 
         loop {
-            if let Ok((mut socket, _)) = listener.accept().await {
+            if let Ok((socket, _)) = listener.accept().await {
                 let id = next_id;
                 next_id += 1;
 
@@ -45,7 +46,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 let mut bits_lock = bits.lock().await;
                                 bits_lock.insert(id, buf[0]);
 
-                                // checks if it was the last bit waited
+                                println!("received bit: {}", buf[0]);
+                                // checks if it was the last bit waited: only a signal, no calculation here
                                 let registered_count = controllers_for_reader.lock().await.len();
                                 if bits_lock.len() == registered_count {
                                     notify_for_reader.notify_one();
@@ -56,8 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 controllers_for_reader.lock().await.remove(&id);
                                 bits.lock().await.remove(&id);
 
-                                // now received bits might be complete: wake up
-                                // to check
+                                // now received bits might be complete: wake up to check
                                 notify_for_reader.notify_one();
                                 break;
                             }
@@ -84,40 +85,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // No ECUs registered: default
         if registered_count == 0 {
-            sleep(Duration::from_millis(100)).await;
+            sleep(Duration::from_millis(1000)).await;
             time += 1;
             println!("Current CAN bus state: 1 (no registered ECUs) (tick: {})", time);
             continue;
         }
 
-        tokio::selec! {
+        // wakes up on set-complete signal OR after 2s (unlock deadlock for ECUs waiting on tx)
+        tokio::select! {
             _ = notify.notified() => {},
+            _ = sleep(Duration::from_millis(2000)) => {},
         }
 
-        // checks if the notification is valid
-        let ready = {
-            let bits = received_bits.lock().await;
-            let count = registered_controllers.lock().await.len();
-            count > 0 && bits.len() == count
-        };
-        if !ready {
-            continue;
-        }
-        time += 1;
-
-        // CAN bus state: dominant (0) if any ECU sends 0, recessive (1) if all
-        // send 1 or no bits
         let bus_state: u8 = {
             let bits = received_bits.lock().await;
-            if bits.values().any(|&b| b == 0) { 0 } else { 1 }
+            if bits.is_empty() {
+                // unlock ecu deadlock for first transmission
+                1
+            } else if bits.values().any(|&b| b == 0) {
+                0 
+            } else {
+                1 
+            }
         };
 
-        let mut regs = registered_controllers.lock().await;
-        regs.retain(|tx| tx.send(bus_state).is_ok());
+        time += 1;
 
         // Go back to rx again
         received_bits.lock().await.clear();
 
         println!("Current CAN bus state: {} (tick: {})", bus_state, time);
+        sleep(Duration::from_millis(100)).await;
+
+        let mut regs = registered_controllers.lock().await;
+        regs.retain(|_, tx| tx.send(bus_state).is_ok());
     }
 }
