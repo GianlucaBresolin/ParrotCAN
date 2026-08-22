@@ -30,8 +30,22 @@ const fn parse_ids(s: &str) -> ([u16; 32], usize) {
     (ids, count)
 }
 
-static MY_IDS_RAW:         ([u16; 32], usize) = parse_ids(env!("MY_IDS"));
-static INTERESTED_IDS_RAW: ([u16; 32], usize) = parse_ids(env!("INTERESTED_IDS"));
+static MY_IDS_RAW: ([u16; 32], usize) = parse_ids(match option_env!("MY_IDS") {
+    Some(val) => val,
+    None => "", 
+});
+
+static INTERESTED_IDS_RAW: ([u16; 32], usize) = parse_ids(match option_env!("INTERESTED_IDS") {
+    Some(val) => val,
+    None => "", 
+});
+
+static ROLE: &'static str = match option_env!("ROLE") {
+    Some(val) => val,
+    None => "none",
+};
+
 
 pub fn my_ids()         -> &'static [u16] { &MY_IDS_RAW.0[..MY_IDS_RAW.1] }
 pub fn interested_ids() -> &'static [u16] { &INTERESTED_IDS_RAW.0[..INTERESTED_IDS_RAW.1] }
+pub fn get_role()       -> &'static str { ROLE }
