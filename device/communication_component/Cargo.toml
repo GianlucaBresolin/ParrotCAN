@@ -4,3 +4,8 @@ version = "0.1.0"
 edition = "2024"
 authors = [ "Gianluca Bresolin" ]
 description = "A communication component for handling communication protocols in an embedded system."
+
+[dependencies] 
+cortex-m = "0.7.7" 
+cortex-m-rt = "0.7.3" 
+cortex-m-semihosting = "0.5"

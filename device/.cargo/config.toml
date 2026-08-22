@@ -8,8 +8,7 @@ runner = """
     -cpu cortex-m3 \
     -nographic \
     -semihosting \
-    -device virtual-can-controller \
-    -kernel target/thumbv7m-none-eabi/debug/ParrotProject 
+    -kernel  
     """
 rustflags = [
     "-C", "link-arg=-Tlink.x"       

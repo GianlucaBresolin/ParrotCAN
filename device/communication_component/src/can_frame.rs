@@ -1,3 +1,4 @@
+#[derive(Clone, Copy)]
 pub struct CANFrame {
     pub id: u16, 
     pub rtr: bool, 
