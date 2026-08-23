@@ -7,22 +7,24 @@ pub static mut LOCAL_DEVICE_MANAGER: Option<LocalDeviceManager> = None;
 use crate::device_drivers::DeviceDriver;
 
 pub struct LocalDeviceManager {
-    led_driver: &'static mut dyn DeviceDriver,
+    led_driver: *mut dyn DeviceDriver,
 }
 
 impl LocalDeviceManager {
-    pub fn new(led_driver: &'static mut dyn DeviceDriver) -> Self {
+    pub fn new(led_driver: *mut dyn DeviceDriver) -> Self {
         Self {
             led_driver
         }
     }
 
     pub fn turn_on_light(&mut self) {
-        self.led_driver.turn_on();
+        unsafe {
+            (&mut *self.led_driver).turn_on();
+        }
     }
 }
 
-pub fn init(device_driver: &'static mut dyn DeviceDriver) {
+pub fn init(device_driver: *mut dyn DeviceDriver) {
     unsafe {
         LOCAL_DEVICE_MANAGER = Some(LocalDeviceManager::new(device_driver));
     }

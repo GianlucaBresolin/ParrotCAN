@@ -10,3 +10,5 @@ impl DeviceDriver for SimulatedLedDriver {
         hprintln!("LED is turned ON");
     }
 } 
+
+pub static mut SIMULATED_LED_DRIVER: SimulatedLedDriver = SimulatedLedDriver;
