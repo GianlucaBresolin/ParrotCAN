@@ -46,8 +46,6 @@ fn transmit_nd_message(attacker_frame: CANFrame) {
             cortex_m::asm::wfi(); 
         }
 
-        hprintln!("TRASMETTIAMO UN D MESSAGE");
-
         if COLLISION_DETECTED.load(Ordering::Acquire) {
             COLLISION_DETECTED.store(false, Ordering::Release);
             SUSPECT_FOUND.store(false, Ordering::Release);
@@ -77,8 +75,8 @@ fn transmit_d_message(attacker_frame: CANFrame) {
             id: attacker_frame.id,
             rtr: attacker_frame.rtr,
             dlc: attacker_frame.dlc,
-            data_low: attacker_frame.data_low,
-            data_high: attacker_frame.data_high,
+            data_low: 0,
+            data_high: 0,
         }));
     });
 
@@ -112,10 +110,10 @@ pub fn is_d_message(received_frame: CANFrame) -> bool {
     cortex_m::interrupt::free(|cs| {
         match &*D_MESSAGE.borrow(cs).borrow() {
             Some(d_msg) => {
-                d_msg.id == received_frame.id &&
-                d_msg.dlc == received_frame.dlc &&
-                d_msg.data_low == received_frame.data_low &&
-                d_msg.data_high == received_frame.data_high
+                d_msg.id == received_frame.id
+                && d_msg.dlc == received_frame.dlc
+                && d_msg.data_low == received_frame.data_low
+                && d_msg.data_high == received_frame.data_high
             }
             None => false,
         }
