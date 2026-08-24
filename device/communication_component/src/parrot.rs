@@ -56,16 +56,13 @@ fn transmit_nd_message(attacker_frame: CANFrame) {
 }
 
 fn transmit_d_message(attacker_frame: CANFrame) {
-    // defense message:
-    // - same spoofed id
-    // - same dlc
-    // - data of all 0
     unsafe {
         if let Some(ref mut communication_component) = COMMUNICATION_COMPONENT {
+            // defense message
             communication_component.send(
-                attacker_frame.id,
-                attacker_frame.dlc,    
-                &[0u8; 64][..attacker_frame.dlc as usize],
+                attacker_frame.id, // same spoofed id
+                attacker_frame.dlc, // same dlc    
+                &[0u8; 64][..attacker_frame.dlc as usize], // data of all 0s
             );
         }
     }

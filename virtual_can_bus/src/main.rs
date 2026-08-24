@@ -115,7 +115,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         received_bits.lock().await.clear();
 
         println!("Current CAN bus state: {} (tick: {})", bus_state, time);
-        sleep(Duration::from_millis(100)).await;
+        sleep(Duration::from_millis(20)).await;
 
         let mut regs = registered_controllers.lock().await;
         regs.retain(|_, tx| tx.send(bus_state).is_ok());
