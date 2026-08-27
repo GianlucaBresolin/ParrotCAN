@@ -111,8 +111,11 @@ impl CommunicationComponent {
                 (frame.data_high >>  8) as u8,
                 (frame.data_high      ) as u8,
             ];
-            unsafe {
-                (&mut *self.listener).on_interesting_frame(&payload[..frame.dlc as usize]);
+            if payload.iter().any(|&b| b != 0) {
+                // check if it is a D message
+                unsafe {
+                    (&mut *self.listener).on_interesting_frame(&payload[..frame.dlc as usize]);
+                }
             }
         }
 
