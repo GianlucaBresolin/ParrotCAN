@@ -6,3 +6,7 @@ authors = [
     "Gianluca Bresolin"
 ]
 description = "A local device manager for managing local devices in an embedded system."
+
+[dependencies]
+device_driver = { path = "../device_driver" }
+simulated_led_driver = { path = "../simulated_led_driver" }

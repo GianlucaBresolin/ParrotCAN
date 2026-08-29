@@ -1,0 +1,6 @@
+[package]
+name = "device_driver"
+version = "0.1.0"
+edition = "2024"
+authors = [ "Gianluca Bresolin" ]
+description = "Shared driver trait for device components."

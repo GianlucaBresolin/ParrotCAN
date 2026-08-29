@@ -1,14 +1,14 @@
 #![no_std]
 
-use local_device_manager::device_drivers::DeviceDriver;
 use cortex_m_semihosting::hprintln;
+use device_driver::DeviceDriver;
 
 pub struct SimulatedLedDriver;
 
 impl DeviceDriver for SimulatedLedDriver {
-    fn turn_on(&mut self) { 
+    fn turn_on(&mut self) {
         hprintln!("LED is turned ON");
     }
-} 
+}
 
 pub static mut SIMULATED_LED_DRIVER: SimulatedLedDriver = SimulatedLedDriver;
