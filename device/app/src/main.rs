@@ -2,19 +2,17 @@
 #![no_main]
 
 mod parse;
-mod frame_listener;
+mod app_listener;
 
 use cortex_m_rt::entry;
 use cortex_m_rt::exception;
 use cortex_m::interrupt::InterruptNumber;
-use cortex_m::peripheral::{NVIC, SCB};
+use cortex_m::peripheral::{NVIC};
 
-use frame_listener::AppFrameListener;
-use communication_component::COMMUNICATION_COMPONENT;
-use simulated_led_driver::SIMULATED_LED_DRIVER;
-use local_device_manager::device_drivers::DeviceDriver;
-static mut APP_FRAME_LISTENER: AppFrameListener = AppFrameListener;
-use cortex_m_semihosting::hprintln;
+use inter_component_exchange_manager::INTER_COMPONENT_EXCHANGE_MANAGER;
+use app_listener::AppListener;
+
+static mut APP_LISTENER: AppListener = AppListener;
 
 #[derive(Clone, Copy)]
 struct CanInterrupt(u8);
@@ -30,17 +28,9 @@ fn main() -> !{
     let my_ids = parse::my_ids();
     let interested_ids = parse::interested_ids();
     let role = parse::get_role();
-    let mut sended = false;
+    let mut tx_count = 0;
 
-    communication_component::init(
-        my_ids,
-        interested_ids, 
-        (&raw mut APP_FRAME_LISTENER) as *mut _ as *mut dyn communication_component::frame_listener::FrameListener,
-    );
-    
-    let led_driver: *mut dyn DeviceDriver = (&raw mut SIMULATED_LED_DRIVER) as *mut _ as *mut dyn DeviceDriver;
-    local_device_manager::init(led_driver);
-
+    // sets priorities and interrupts
     unsafe {
         let mut cp = cortex_m::Peripherals::steal();
         
@@ -54,19 +44,25 @@ fn main() -> !{
         cortex_m::interrupt::enable();
     }   
 
+    
+    // passive device application logic
+    let app_frame_listener = (&raw mut APP_LISTENER) as *mut dyn inter_component_exchange_manager::app_listener::AppListener;
+
+    inter_component_exchange_manager::init(
+        my_ids, 
+        interested_ids, 
+        app_frame_listener
+    );
+
     loop{    
-        if !sended{
-            if let Some(communication_component) = unsafe { &mut *core::ptr::addr_of_mut!(COMMUNICATION_COMPONENT) }.as_mut() {
+        // active device application logic
+        if role == "attacker" && tx_count < 2 {
+            if let Some(inter_component_exchange_manager) = unsafe { &mut *core::ptr::addr_of_mut!(INTER_COMPONENT_EXCHANGE_MANAGER) }.as_mut() {
                 // default data
-                sended = true;
-
                 let dlc: u8 = 8;
-                if my_ids.get(0) == Some(&0x101) && role == "attacker" {
-                    let data: [u8; 8] = [0xFF; 8];
-                    communication_component.send(my_ids[0], dlc, &data);
-
-                    communication_component.send(my_ids[0], dlc, &data);
-                }
+                let data: [u8; 8] = [0xFF; 8];
+                inter_component_exchange_manager.send(my_ids[0], dlc, data);
+                tx_count += 1;
             }
         }
     }
@@ -82,10 +78,9 @@ unsafe fn DefaultHandler(irqn: i16) {
     match irqn {
         40 => {
                 // Received CAN Frame Interrupt
-                hprintln!("\n INTERRUPT FOR RX \n");
                 unsafe {
-                    if let Some(ref mut communication_component) = COMMUNICATION_COMPONENT {
-                        communication_component.receive();
+                    if let Some(ref mut inter_component_exchange_manager) = INTER_COMPONENT_EXCHANGE_MANAGER {
+                        inter_component_exchange_manager.receive();
                     }
                 }
             },
@@ -93,8 +88,8 @@ unsafe fn DefaultHandler(irqn: i16) {
             {
                 // Received TX Error Interrupt
                 unsafe {
-                    if let Some(ref mut communication_component) = COMMUNICATION_COMPONENT {
-                        communication_component.tx_error_handler();
+                    if let Some(ref mut inter_component_exchange_manager) = INTER_COMPONENT_EXCHANGE_MANAGER {
+                        inter_component_exchange_manager.tx_error_handler();
                     }
                 }
             }

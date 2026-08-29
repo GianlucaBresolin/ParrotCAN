@@ -1,0 +1,10 @@
+[package]
+name = "inter_component_exchange_manager"
+version = "0.1.0"
+edition = "2024"
+authors = [ "Gianluca Bresolin" ]
+description = "A inter component exchange manger to provide an abstraction layer for inter component communications inside the device."
+
+[dependencies]
+communication_component = { path = "../communication_component" }
+local_device_manager = { path = "../local_device_manager" }
