@@ -1,6 +1,7 @@
 services:
   virtual-can-bus:
     image: gianlucabresolin/virtual-can-bus:latest
+    platform: linux/arm64
     container_name: virtual-can-bus
     profiles: ["default"]
     networks:
@@ -8,6 +9,7 @@ services:
 
   virtual-can-bus-debug:
     image: gianlucabresolin/virtual-can-bus-debug:latest
+    platform: linux/arm64
     container_name: virtual-can-bus
     profiles: ["debug-state", "debug-verbose"]
     networks:
@@ -15,6 +17,7 @@ services:
 
   victim-device:
     image: gianlucabresolin/can-device:victim
+    platform: linux/arm64
     container_name: victim-device
     profiles: ["default"]
     depends_on:
@@ -24,6 +27,7 @@ services:
 
   victim-device-debug-state:
     image: gianlucabresolin/can-device-debug-state:victim
+    platform: linux/arm64
     container_name: victim-device
     profiles: ["debug-state"]
     depends_on:
@@ -33,6 +37,7 @@ services:
 
   victim-device-debug-verbose:
     image: gianlucabresolin/can-device-debug-verbose:victim
+    platform: linux/arm64
     container_name: victim-device
     profiles: ["debug-verbose"]
     depends_on:
@@ -42,6 +47,7 @@ services:
 
   attacker-device:
     image: gianlucabresolin/can-device:attacker
+    platform: linux/arm64
     container_name: attacker-device
     profiles: ["default"]
     depends_on:
@@ -51,6 +57,7 @@ services:
 
   attacker-device-debug-state:
     image: gianlucabresolin/can-device-debug-state:attacker
+    platform: linux/arm64
     container_name: attacker-device
     profiles: ["debug-state"]
     depends_on:
@@ -60,6 +67,7 @@ services:
 
   attacker-device-debug-verbose:
     image: gianlucabresolin/can-device-debug-verbose:attacker
+    platform: linux/arm64
     container_name: attacker-device
     profiles: ["debug-verbose"]
     depends_on:
@@ -69,6 +77,7 @@ services:
 
   led-device:
     image: gianlucabresolin/can-device:led
+    platform: linux/arm64
     container_name: led-device
     profiles: ["default"]
     depends_on:
@@ -76,10 +85,11 @@ services:
     networks:
       - can-net
 
-  led-device-debug:
-    image: gianlucabresolin/can-device-debug:led
+  led-device-debug-state:
+    image: gianlucabresolin/can-device-debug-state:led
+    platform: linux/arm64
     container_name: led-device
-    profiles: ["debug"]
+    profiles: ["debug-state"]
     depends_on:
       - virtual-can-bus-debug
     networks:
@@ -87,6 +97,7 @@ services:
 
   led-device-debug-verbose:
     image: gianlucabresolin/can-device-debug-verbose:led
+    platform: linux/arm64
     container_name: led-device
     profiles: ["debug-verbose"]
     depends_on:
