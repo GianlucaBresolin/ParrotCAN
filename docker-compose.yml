@@ -1,48 +1,96 @@
 services:
   virtual-can-bus:
-    build:
-      context: ./virtual_can_bus
-    pull_policy: build
+    image: gianlucabresolin/virtual-can-bus:latest
     container_name: virtual-can-bus
+    profiles: ["default"]
+    networks:
+      - can-net
+
+  virtual-can-bus-debug:
+    image: gianlucabresolin/virtual-can-bus-debug:latest
+    container_name: virtual-can-bus
+    profiles: ["debug-state", "debug-verbose"]
     networks:
       - can-net
 
   victim-device:
-    build:
-      context: ./device
-      args:
-        MY_IDS: "0x101"
-        INTERESTED_IDS: ""
-        ROLE: "victim"
+    image: gianlucabresolin/can-device:victim
     container_name: victim-device
+    profiles: ["default"]
     depends_on:
       - virtual-can-bus
+    networks:
+      - can-net
+
+  victim-device-debug-state:
+    image: gianlucabresolin/can-device-debug-state:victim
+    container_name: victim-device
+    profiles: ["debug-state"]
+    depends_on:
+      - virtual-can-bus-debug
+    networks:
+      - can-net
+
+  victim-device-debug-verbose:
+    image: gianlucabresolin/can-device-debug-verbose:victim
+    container_name: victim-device
+    profiles: ["debug-verbose"]
+    depends_on:
+      - virtual-can-bus-debug
     networks:
       - can-net
 
   attacker-device:
-    build:
-      context: ./device
-      args:
-        MY_IDS: "0x101"
-        INTERESTED_IDS: ""
-        ROLE: "attacker"
+    image: gianlucabresolin/can-device:attacker
     container_name: attacker-device
+    profiles: ["default"]
     depends_on:
       - virtual-can-bus
     networks:
       - can-net
 
+  attacker-device-debug-state:
+    image: gianlucabresolin/can-device-debug-state:attacker
+    container_name: attacker-device
+    profiles: ["debug-state"]
+    depends_on:
+      - virtual-can-bus-debug
+    networks:
+      - can-net
+
+  attacker-device-debug-verbose:
+    image: gianlucabresolin/can-device-debug-verbose:attacker
+    container_name: attacker-device
+    profiles: ["debug-verbose"]
+    depends_on:
+      - virtual-can-bus-debug
+    networks:
+      - can-net
+
   led-device:
-    build:
-      context: ./device
-      args:
-        MY_IDS: ""
-        INTERESTED_IDS: "0x101"
-        ROLE: "none"
+    image: gianlucabresolin/can-device:led
     container_name: led-device
+    profiles: ["default"]
     depends_on:
       - virtual-can-bus
+    networks:
+      - can-net
+
+  led-device-debug:
+    image: gianlucabresolin/can-device-debug:led
+    container_name: led-device
+    profiles: ["debug"]
+    depends_on:
+      - virtual-can-bus-debug
+    networks:
+      - can-net
+
+  led-device-debug-verbose:
+    image: gianlucabresolin/can-device-debug-verbose:led
+    container_name: led-device
+    profiles: ["debug-verbose"]
+    depends_on:
+      - virtual-can-bus-debug
     networks:
       - can-net
 
