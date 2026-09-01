@@ -48,7 +48,9 @@ This variant additionally prints the transmission errors, the tx bits
 (specifying whether they are part of the IFS or of an error  delimiter), and the
 bit transmitted on the virtual CAN bus.
 
-
 Only one profile should be run at a time.  
 To stop the scenario, press `Ctrl+C` or run 
 `docker compose --profile <default|debug> down` in the same folder.  
+
+Note that the testing scenario requires around 1 min to complete (2815 ticks,
+with a virtual can bus that outputs a bit every 20ms to ensure clean logs).
