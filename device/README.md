@@ -9,7 +9,7 @@ the repository, run the following command to initialize the submodule:
 git submodule update --init --recursive
 ```
 ---
-### **Building and Running QEMU**
+### **Building and Running QEMU Locally**
 
 Run the following command to build and run a QEMU instance of the ParrotProject.
 
@@ -24,11 +24,11 @@ implemented inside it:
 cargo build
 cargo run
 ```
-
+(A connection with a virtual can bus is required).
 --- 
 
 ### Docker
-Build the qemu instance for linux container:
+To build the QEMU instance for a linux container:
 ```
 docker run --rm -it -v "$(pwd)":/app -w /app rust:1.85-bookworm bash -c "
 apt-get update && apt-get install -y build-essential pkg-config ninja-build libglib2.0-dev libpixman-1-dev libfdt-dev python3 python3-pip &&
@@ -38,3 +38,12 @@ cd qemu-custom && rm -rf build_linux && mkdir build_linux && cd build_linux &&
 ```
 
 The result of the build is available at `/qemu_custom/build_linux`. 
+
+### Required ENVs
+- `MY_IDS` a list of ids associated to our ECU
+- `INTERESTED_IDS` a list of ids to which our ECU reacts
+- `ROLE` identifies the role inside the testing scenario
+  `victim`-`attacker`-`none`
+
+### ECU Architecture
+![](./../docs/assets/ECU_Architecture.jpeg)

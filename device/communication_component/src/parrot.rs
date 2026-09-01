@@ -8,7 +8,7 @@ use cortex_m::interrupt::Mutex;
 use core::sync::atomic::{AtomicU8, AtomicBool, Ordering};
 use cortex_m_rt::exception;
 
-pub const ND: u8 = 100;
+const ND: u8 = 100;
 
 pub static PENDING_ENGAGE_FRAME: Mutex<RefCell<Option<CANFrame>>> = Mutex::new(RefCell::new(None));
 pub static SUSPECT_FOUND: AtomicBool = AtomicBool::new(false);
