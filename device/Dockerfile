@@ -17,7 +17,9 @@ RUN apt-get update && apt-get install -y \
 COPY Cargo.toml Cargo.lock memory.x ./
 COPY .cargo ./.cargo
 COPY app ./app
+COPY inter_component_exchange_manager ./inter_component_exchange_manager
 COPY communication_component ./communication_component
+COPY device_driver ./device_driver
 COPY local_device_manager ./local_device_manager
 COPY simulated_led_driver ./simulated_led_driver
 COPY qemu-custom/build_linux/qemu-system-arm ./qemu-custom/build/qemu-system-arm-unsigned

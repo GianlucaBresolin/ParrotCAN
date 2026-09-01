@@ -51,6 +51,7 @@ fn main() -> !{
     inter_component_exchange_manager::init(
         my_ids, 
         interested_ids, 
+        role, 
         app_frame_listener
     );
 

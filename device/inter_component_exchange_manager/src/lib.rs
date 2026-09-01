@@ -70,6 +70,7 @@ impl FrameListener for InterComponentExchangeManager {
 pub fn init(
     my_ids: &'static [u16],
     interested_ids: &'static [u16],
+    role: &'static str,
     listener: *mut dyn AppListener
 ) {
     unsafe {
@@ -83,7 +84,7 @@ pub fn init(
     let frame_listener: *mut dyn FrameListener = inter_component_exchange_manager_ptr as *mut dyn FrameListener;
 
 
-    communication_component::init(my_ids, interested_ids, frame_listener);
+    communication_component::init(my_ids, interested_ids, role, frame_listener);
 
     local_device_manager::init();
 }

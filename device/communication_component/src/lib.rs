@@ -17,6 +17,7 @@ pub static mut COMMUNICATION_COMPONENT: Option<CommunicationComponent> = None;
 pub struct CommunicationComponent {
     my_ids: [u16; 10],
     my_ids_count: usize,
+    role: &'static str, 
     interested_ids: [u16; 10],
     interested_ids_count: usize,
     listener: *mut dyn FrameListener, 
@@ -27,6 +28,7 @@ impl CommunicationComponent {
     pub fn new(
         my_ids: &[u16], 
         interested_ids: &[u16], 
+        role: &'static str, 
         listener: *mut dyn FrameListener
     ) -> Self {
         let mut comm_comp = Self {
@@ -34,6 +36,7 @@ impl CommunicationComponent {
             my_ids_count: 0,
             interested_ids: [0; 10],
             interested_ids_count: 0,
+            role,
             listener,
             tx_flag: false
         };
@@ -98,7 +101,9 @@ impl CommunicationComponent {
         };
 
         // Parrots Defense Algorithm
-        self.check_frame(frame);
+        if self.role != "attacker" {
+            self.check_frame(frame);    
+        }
 
         if self.interested_ids[..self.interested_ids_count].contains(&frame.id) {
             let payload: [u8; 8] = [
@@ -155,9 +160,10 @@ impl CommunicationComponent {
 pub fn init(
     my_ids: &'static [u16],
     interested_ids: &'static [u16],
+    role: &'static str, 
     listener: *mut dyn FrameListener,
 ) {
     unsafe {
-        COMMUNICATION_COMPONENT = Some(CommunicationComponent::new(my_ids, interested_ids, listener));
+        COMMUNICATION_COMPONENT = Some(CommunicationComponent::new(my_ids, interested_ids, role, listener));
     }
 }

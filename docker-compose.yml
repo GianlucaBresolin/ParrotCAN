@@ -3,7 +3,7 @@ services:
     image: gianlucabresolin/virtual-can-bus:latest
     platform: linux/arm64
     container_name: virtual-can-bus
-    profiles: ["default"]
+    profiles: ["default", "debug-state"]
     networks:
       - can-net
 
@@ -11,7 +11,7 @@ services:
     image: gianlucabresolin/virtual-can-bus-debug:latest
     platform: linux/arm64
     container_name: virtual-can-bus
-    profiles: ["debug-state", "debug-verbose"]
+    profiles: ["debug-verbose"]
     networks:
       - can-net
 
@@ -31,7 +31,7 @@ services:
     container_name: victim-device
     profiles: ["debug-state"]
     depends_on:
-      - virtual-can-bus-debug
+      - virtual-can-bus
     networks:
       - can-net
 
@@ -61,7 +61,7 @@ services:
     container_name: attacker-device
     profiles: ["debug-state"]
     depends_on:
-      - virtual-can-bus-debug
+      - virtual-can-bus
     networks:
       - can-net
 
@@ -91,7 +91,7 @@ services:
     container_name: led-device
     profiles: ["debug-state"]
     depends_on:
-      - virtual-can-bus-debug
+      - virtual-can-bus
     networks:
       - can-net
 

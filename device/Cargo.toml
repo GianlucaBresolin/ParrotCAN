@@ -4,7 +4,8 @@ members = [
     "device_driver",
     "local_device_manager",
     "simulated_led_driver",
-    "communication_component", "inter_component_exchange_manager",
+    "communication_component", 
+    "inter_component_exchange_manager",
 ]
 resolver = "3"
 

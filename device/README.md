@@ -1,9 +1,9 @@
 # **ParrotProject: Device**
 
 ### **Submodule: QEMU-Custom**
-QEMU-Custom is a custom version of QEMU with a `virtual-can-controller` device
-added. This dependency is treated as a git submodule, so after cloning the
-repository, run the following command to initialize the submodule:
+QEMU-Custom is a custom version of QEMU with a `virtual-can-controller`
+component added. This dependency is treated as a git submodule, so after cloning
+the repository, run the following command to initialize the submodule:
 
 ```
 git submodule update --init --recursive
@@ -11,16 +11,21 @@ git submodule update --init --recursive
 ---
 ### **Building and Running QEMU**
 
-Run the following command to build and run a QEMU instance of the ParrotProject:
+Run the following command to build and run a QEMU instance of the ParrotProject.
 
+To build QEMU with our `virtual-can-controller` component:
+```
+./build_qemu_custom.sh
+```
+
+To build and run the emulation of an ECU with the Parrot defense algorithm
+implemented inside it:
 ```
 cargo build
 cargo run
 ```
---- 
-This project was developed as part of the *Cyberphysical and IoT Systems* course
-at the University of Padua.
 
+--- 
 
 ### Docker
 Build the qemu instance for linux container:

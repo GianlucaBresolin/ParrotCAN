@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::println;
 use std::time::Duration;
 use tokio::time::sleep;
 use std::sync::{Arc};
@@ -46,7 +45,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 let mut bits_lock = bits.lock().await;
                                 bits_lock.insert(id, buf[0]);
 
-                                println!("received bit: {}", buf[0]);
                                 // checks if it was the last bit waited: only a signal, no calculation here
                                 let registered_count = controllers_for_reader.lock().await.len();
                                 if bits_lock.len() == registered_count {
@@ -87,7 +85,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if registered_count == 0 {
             sleep(Duration::from_millis(1000)).await;
             time += 1;
-            println!("Current CAN bus state: 1 (no registered ECUs) (tick: {})", time);
+            println!("Current CAN bus state: 1 (tick: {})", time);
             continue;
         }
 

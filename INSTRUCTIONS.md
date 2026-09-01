@@ -10,36 +10,45 @@ it is enough to download the `docker-compose.yaml` file and run it.
 - Docker Engine (or Docker Desktop) installed
 - Docker Compose (bundled with recent Docker versions as `docker compose`)
 
+Before you continue, please make sure that you have Docker and Compose
+installed. Please refer to https://docs.docker.com/get-docker/ for
+documentation on how to install Docker. 
+
 ## Setup
 
 Download the `docker-compose.yaml` file to an empty folder on your machine.
 
 ## Running the scenario
 
-From the folder containing `docker-compose.yaml`, run one of the following:
+From the folder containing `docker-compose.yaml`, to enable cross-platform CPU
+architecture emulation, run the following command 
+```bash
+docker run --privileged --rm tonistiigi/binfmt --install all 
+```
+
+Finally, one of the following:
 
 ```bash
 docker compose --profile default up
 ```
-
-```bash
-docker compose --profile debug-state up
-```
-
-```bash
-docker compose --profile debug-verbose up
-```
-
 This will runs the experiment with the regular images: the Virtual CAN Bus, the
 victim ECU, the attacker ECU (spoofing the victim's CAN ID), and the led-device
 reacting to frames on that ID. 
 
-Both the commands will run the same scenario, but the `--profile debug` variant
-uses the images that additionally print detailed internal logs (e.g. bit-level
-transmission/reception events, Parrot Defense state transitions, ECU's CAN Bus
-state), useful for inspecting the experiment scenario step by step rather than
-just the application-level output.
+```bash
+docker compose --profile debug-state up
+```
+This variant additionally prints the ECU's CAN Bus state together with the TEC
+and REC values, every time they are updated. 
 
-Only one profile should be run at a time.   
+```bash
+docker compose --profile debug-verbose up
+```
+This variant additionally prints the transmission errors, the tx bits
+(specifying whether they are part of the IFS or of an error  delimiter), and the
+bit transmitted on the virtual CAN bus.
+
+
+Only one profile should be run at a time.  
 To stop the scenario, press `Ctrl+C` or run 
 `docker compose --profile <default|debug> down` in the same folder.  
